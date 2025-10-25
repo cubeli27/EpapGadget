@@ -11,6 +11,7 @@
 #include <Arduino.h>
 void helloWorld();
 void goToSleep();
+void fetchTelegramMessage();
 
 //DEBUGING STUFF-------------------------------------------
 #define DEBUG 1 // 1= enable debug prints, 0=disable debug prints
@@ -30,6 +31,13 @@ void goToSleep();
 
 #include <GxEPD2_BW.h>
 #include <Fonts/FreeMonoBold9pt7b.h>
+#include <esp_sleep.h>
+#include <esp32/rtc.h>
+#include <WiFi.h>
+#include <private.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
+
 
 // ESP32-C3 CS(SS)=7,SCL(SCK)=4,SDA(MOSI)=6,BUSY=3,RES(RST)=2,DC=1
 #define CS_PIN (7)
@@ -42,7 +50,12 @@ void goToSleep();
 // 4.2'' EPD Module
 GxEPD2_BW<GxEPD2_420_GDEY042T81, GxEPD2_420_GDEY042T81::HEIGHT> display(GxEPD2_420_GDEY042T81(/*CS=5*/ CS_PIN, /*DC=*/ DC_PIN, /*RES=*/ RES_PIN, /*BUSY=*/ BUSY_PIN)); // 400x300, SSD1683
 
-RTC_DATA_ATTR int counter = 0; // RTC_DATA_ATTR for retaining data during sleep
+// RTC_DATA_ATTR for retaining data during sleep
+RTC_DATA_ATTR int counter = 0; //just for testing increments on each wakeup
+RTC_DATA_ATTR char message1[100];
+RTC_DATA_ATTR char message2[100];
+RTC_DATA_ATTR char message3[100];
+RTC_DATA_ATTR char telegramMessage1[100] = "No Msg";
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void setup()
 {
@@ -59,8 +72,6 @@ void setup()
   goToSleep();
 }
 
-char message1[20];
-char message2[20];
 
 void helloWorld()
 {
@@ -68,35 +79,85 @@ void helloWorld()
   display.setRotation(0); // 0 rotation for 4inch from connector down 
   display.setFont(&FreeMonoBold9pt7b);
   display.setTextColor(GxEPD_BLACK);
+  
+  fetchTelegramMessage();
+  sprintf(message1, "USER1: %s", telegramMessage1);
+  sprintf(message2, "USER2: %d", counter + 1);
+  sprintf(message3, "USER3: %d", counter + 2);
 
-  sprintf(message1, "Count: %d", counter);
-  sprintf(message2, "Next: %d", counter + 1);
-  int16_t tbx, tby; uint16_t tbw, tbh;
-  display.getTextBounds(message1, 0, 0, &tbx, &tby, &tbw, &tbh);
-  // center the bounding box by transposition of the origin:
-  uint16_t x = ((display.width() - tbw) / 2) - tbx;
-  uint16_t y = ((display.height() - tbh) / 2) - tby;
+  int16_t tbx1, tby1; uint16_t tbw1, tbh1;
+  int16_t tbx2, tby2; uint16_t tbw2, tbh2;
+  int16_t tbx3, tby3; uint16_t tbw3, tbh3;
+  display.getTextBounds(message1, 0, 0, &tbx1, &tby1, &tbw1, &tbh1);
+  display.getTextBounds(message2, 0, 0, &tbx2, &tby2, &tbw2, &tbh2);
+  display.getTextBounds(message3, 0, 0, &tbx3, &tby3, &tbw3, &tbh3);
+
+  // POSITIONING User messages on the left in 3 rows
+  uint16_t x = 0; uint16_t y = 0;
   display.setFullWindow();
   display.firstPage();
   do
   {
     display.fillScreen(GxEPD_WHITE);
-    display.setCursor(x, y-tbh);
+    //print message1
+    display.setCursor(x, y+tbh1);
     display.print(message1);
-    display.setTextColor(GxEPD_BLACK);
-    display.getTextBounds(message2, 0, 0, &tbx, &tby, &tbw, &tbh);
-    x = ((display.width() - tbw) / 2) - tbx;
-    display.setCursor(x, y+tbh);
+    //print message2
+    display.setCursor(x, y+tbh1+tbh2+display.height()/3);
     display.print(message2);
+    //print message3
+    display.setCursor(x, y+tbh1+tbh2+tbh3+display.height()/3*2);
+    display.print(message3);
   }
   while (display.nextPage());
 }
 
+
+RTC_DATA_ATTR long lastUpdateId = 0;   //super necessary to keep track of last read message offset
+void fetchTelegramMessage() {
+  if (WiFi.status() != WL_CONNECTED) {
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    int attempts = 0;
+    while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+      delay(500);
+      attempts++;
+    }
+  }
+
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    String url = "https://api.telegram.org/bot" + String(TELEGRAM_BOT_TOKEN) + "/getUpdates?offset=" + String(lastUpdateId + 1) + "&limit=1";   
+    http.begin(url);
+    int httpCode = http.GET();
+
+    if (httpCode == HTTP_CODE_OK) {
+      String payload = http.getString();
+      DynamicJsonDocument doc(2048);
+      deserializeJson(doc, payload);
+
+      // Check if there is at least one message
+      if (doc["result"].size() > 0) {
+        const char* text = doc["result"][doc["result"].size() - 1]["message"]["text"];
+        if (text && strlen(text) > 0) {
+          strncpy(telegramMessage1, text, sizeof(telegramMessage1));
+          telegramMessage1[sizeof(telegramMessage1)-1] = '\0'; // ensure null-termination
+        }
+        // Update offset to prevent re-reading this message
+        lastUpdateId = doc["result"][0]["update_id"];
+      }
+    }
+    http.end();
+  }
+  DEBUG_PRINTLN("Fetched Telegram message: " + String(telegramMessage1));
+}
+
+
+
 void goToSleep(){
-  DEBUG_PRINTLN("Counter at "+String(counter)+", going to sleep for 60s");
+  DEBUG_PRINTLN("Counter at "+String(counter)+", going to sleep for 6s");
   counter++;
-  delay(1000);
-  esp_sleep_enable_timer_wakeup(60*1000000); // x times 1million microseconds = x*1s = xs
+  delay(1000); //give some time to see the message before sleeping
+  esp_sleep_enable_timer_wakeup(6*1000000); // x times 1million microseconds = x*1s = xs
   esp_deep_sleep_start();
 }
 
