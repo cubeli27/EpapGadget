@@ -275,6 +275,7 @@ void goToSleep()
   DEBUG_PRINTLN("Counter at "+String(counter)+", going to sleep for 6s");
   counter++;
   delay(1000); //give some time to see the message before sleeping
+  display.hibernate();  //put display to hibernate to save power
   esp_sleep_enable_timer_wakeup(6*1000000); // x times 1million microseconds = x*1s = xs
   esp_deep_sleep_start();
 }
