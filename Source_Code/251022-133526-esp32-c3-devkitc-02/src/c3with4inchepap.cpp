@@ -78,8 +78,6 @@ void setup()
   pinMode(RES_PIN, OUTPUT);
   pinMode(BUSY_PIN,OUTPUT);
 
-  display.init(115200,false,50,false);
-  delay(1500);//giving it some extra time seems to help
   if (!FrameSet) {
     display.init(115200,true,50,false);
     delay(1500);//giving it some extra time seems to help
@@ -90,6 +88,8 @@ void setup()
   else {
     DEBUG_PRINTLN("Frame set -> partial update");
   }
+  display.init(115200,false,50,false);
+  delay(1500);//giving it some extra time seems to help
   fetchTelegramMessage();
   partialUpdateTelegramMsgs();
   goToSleep();
