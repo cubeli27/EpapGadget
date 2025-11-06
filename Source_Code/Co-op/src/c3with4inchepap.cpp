@@ -6,6 +6,8 @@
 #define DC_PIN 1 // Data/Command - IO1
 #define SCL_PIN 4 // SCK - IO4
 #define SDA_PIN 6 // MOSI - IO6
+#define USER1 (5) // button1
+#define USER2 (10) // button2
 */
 #include <Arduino.h>
 #include <GxEPD2_BW.h>
@@ -44,6 +46,9 @@ void goToSleep();
 #define RES_PIN (2)
 #define DC_PIN (1)
 
+#define INPUT1 (5)
+#define INPUT2 (10)
+
 // 2.13'' EPD Module
 //GxEPD2_BW<GxEPD2_213_BN, GxEPD2_213_BN::HEIGHT> display(GxEPD2_213_BN(/*CS=5*/ CS_PIN, /*DC=*/ DC_PIN, /*RES=*/ RES_PIN, /*BUSY=*/ BUSY_PIN)); // DEPG0213BN 122x250, SSD1680
 // 4.2'' EPD Module
@@ -54,29 +59,34 @@ GxEPD2_BW<GxEPD2_420_GDEY042T81, GxEPD2_420_GDEY042T81::HEIGHT> display(GxEPD2_4
 // RTC_DATA_ATTR for retaining data during sleep
 RTC_DATA_ATTR bool FrameSet = 0; //flag to know if frame was set already
 RTC_DATA_ATTR int counter = 0; //just for testing increments on each wakeup
-RTC_DATA_ATTR char title[30] = "TITLE";
-RTC_DATA_ATTR char user1[10] = "USER1: ";
-RTC_DATA_ATTR char user2[10] = "USER2: ";
-RTC_DATA_ATTR char user3[10] = "USER3: ";
+RTC_DATA_ATTR char title[20] = "TITLE";
+RTC_DATA_ATTR char user1[30] = "USER1: ";
+RTC_DATA_ATTR char user2[30] = "USER2: ";
+RTC_DATA_ATTR char user3[30] = "USER3: ";
 RTC_DATA_ATTR uint16_t User1_X ;
 RTC_DATA_ATTR uint16_t User1_Y ;
 RTC_DATA_ATTR uint16_t User2_X ;
 RTC_DATA_ATTR uint16_t User2_Y ;
 RTC_DATA_ATTR uint16_t User3_X ;
 RTC_DATA_ATTR uint16_t User3_Y ;
-RTC_DATA_ATTR char telegramMessage1[100] = "No Msg";
-RTC_DATA_ATTR char telegramMessage2[100] = "No Msg";
-RTC_DATA_ATTR char telegramMessage3[100] = "No Msg";
+RTC_DATA_ATTR uint16_t pad = 6; //padding for text boxes
+RTC_DATA_ATTR char telegramMessage1[110] = "No Msg"; //110 chars enough for 3 rows at font size 1   
+RTC_DATA_ATTR char telegramMessage2[110] = "No Msg";
+RTC_DATA_ATTR char telegramMessage3[110] = "No Msg";
 RTC_DATA_ATTR long lastUpdateId = 0;   //super necessary to keep track of last read message offset
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void setup()
 {
   Serial.begin(115200);
   DEBUG_PRINTLN("Setup/ woke up");
+  //eink pins
   pinMode(CS_PIN, OUTPUT);
   pinMode(DC_PIN, OUTPUT);
   pinMode(RES_PIN, OUTPUT);
   pinMode(BUSY_PIN,OUTPUT);
+  //buttons
+  pinMode(INPUT1, INPUT);
+  pinMode(INPUT2, INPUT);
 
   if (!FrameSet) {
     display.init(115200,true,50,false);
@@ -88,7 +98,7 @@ void setup()
   else {
     DEBUG_PRINTLN("Frame set -> partial update");
   }
-  display.init(115200,false,50,false);
+  display.init(115200,false,50,false); //partial update mode
   delay(1500);//giving it some extra time seems to help
   fetchTelegramMessage();
   partialUpdateTelegramMsgs();
@@ -101,7 +111,7 @@ void setFrame() //first display update after init
   display.setRotation(0); // 0 rotation for 4inch from connector down 
   display.setFont(&FreeMonoBold9pt7b);
   display.setTextColor(GxEPD_BLACK);
-  display.setTextSize(2); // 2 times size
+  display.setTextSize(2);
   //x,y of top left corner of the text bounding box, height and width of text in pixels
   int16_t tbx0, tby0; uint16_t tbw0, tbh0;
   int16_t tbx1, tby1; uint16_t tbw1, tbh1;
@@ -111,32 +121,31 @@ void setFrame() //first display update after init
   display.getTextBounds(user1, 0, 0, &tbx1, &tby1, &tbw1, &tbh1);
   display.getTextBounds(user2, 0, 0, &tbx2, &tby2, &tbw2, &tbh2);
   display.getTextBounds(user3, 0, 0, &tbx3, &tby3, &tbw3, &tbh3);
-  // POSITIONING USERS BELOW TITLE EVENLY SPACED
+  // PRINTING TITLE HORIZONTALLY CENTERED AND USERS BELOW TITLE EVENLY SPACED
   uint16_t x = 0; uint16_t y = 0;
   display.setFullWindow();
   display.firstPage();
   do
   {
     display.fillScreen(GxEPD_WHITE);
-    //print title centered horizontally
+    //print title
     display.setCursor((display.width() - tbw0) / 2, y + tbh0);
     display.print(title);
-
     //print user1
-    display.setCursor(x, y-tby1+tbh0+15); // 15 = some spacing 
+    display.setCursor(x, y-tby1+tbh0+pad);
     display.print(user1);
     User1_X = tbw1;
-    User1_Y = y - tby1 + tbh0 + 15; //
+    User1_Y = y - tby1 + tbh0 + pad;
     //print user2
-    display.setCursor(x, y-tby2+tbh0+15+(display.height()-tbh0-15)/3);
+    display.setCursor(x, y-tby2+tbh0+pad+(display.height()-tbh0-pad)/3);
     display.print(user2);
     User2_X = tbw2;
-    User2_Y = y - tby2 + tbh0 + 15 + (display.height()-tbh0-15)/3;
+    User2_Y = y - tby2 + tbh0 + pad + (display.height()-tbh0-pad)/3;
     //print user3
-    display.setCursor(x, y-tby3+tbh0+15+(display.height()-tbh0-15)/3*2);
+    display.setCursor(x, y-tby3+tbh0+pad+(display.height()-tbh0-pad)/3*2);
     display.print(user3);
     User3_X = tbw3;
-    User3_Y = y - tby3 + tbh0 + 15 + (display.height()-tbh0-15)/3*2;
+    User3_Y = y - tby3 + tbh0 + pad + (display.height()-tbh0-pad)/3*2;
   }
   while (display.nextPage());
   DEBUG_PRINTLN("tbx0: "+String(tbx0)+", tby0: "+String(tby0)+", tbw0: "+String(tbw0)+", tbh0: "+String(tbh0));
@@ -161,7 +170,7 @@ void fetchTelegramMessage()
   }
 
   if (WiFi.status() == WL_CONNECTED) {
-    DEBUG_PRINTLN("Connected to WiFi, checking for Telegram messages");
+    DEBUG_PRINTLN("Connected WiFi, checking Telegram, lastUpdateId: " + String(lastUpdateId));
     HTTPClient http;
     String url = "https://api.telegram.org/bot" + String(TELEGRAM_BOT_TOKEN) + "/getUpdates?offset=" + String(lastUpdateId + 1) + "&limit=1";   
     http.begin(url);
@@ -212,13 +221,13 @@ void fetchTelegramMessage()
 
 void partialUpdateTelegramMsgs()
 {
-  DEBUG_PRINTLN("Starting partial update of Telegram messages");
-  if (user1Updated){ 
+  if (user1Updated){
+    DEBUG_PRINTLN("Partial update USER1 Telegram message"); 
     user1Updated = false; // clear the flag
-    const uint16_t msgBoxX = User1_X + 10;
-    const uint16_t msgBoxY = User1_Y - 15;
-    const uint16_t msgBoxW = 350;        // width of the message area
-    const uint16_t msgBoxH = 60;         // height of one line
+    const uint16_t msgBoxX = 0;
+    const uint16_t msgBoxY = User1_Y+1; //1 to give a bit of padding
+    const uint16_t msgBoxW = display.width(); // width of the message area
+    const uint16_t msgBoxH = (display.height()-22)/3-24;  // 24 good number:)
 
     display.setPartialWindow(msgBoxX, msgBoxY, msgBoxW, msgBoxH);
     display.firstPage();
@@ -232,11 +241,12 @@ void partialUpdateTelegramMsgs()
       } while (display.nextPage());
   }
   if (user2Updated){
+  DEBUG_PRINTLN("Partial update USER2 Telegram message");
   user2Updated = false; // clear the flag
-  const uint16_t msgBoxX = User2_X + 10;
-  const uint16_t msgBoxY = User2_Y - 15;
-  const uint16_t msgBoxW = 350;        // width of the message area
-  const uint16_t msgBoxH = 60;         // height of one line
+  const uint16_t msgBoxX = 0;
+  const uint16_t msgBoxY = User2_Y + 1; //1 to give a bit of padding
+  const uint16_t msgBoxW = display.width(); // width of the message area
+  const uint16_t msgBoxH = (display.height()-22)/3-24; // height of one line
 
   display.setPartialWindow(msgBoxX, msgBoxY, msgBoxW, msgBoxH);
   display.firstPage();
@@ -250,11 +260,12 @@ void partialUpdateTelegramMsgs()
     } while (display.nextPage());
   }
   if (user3Updated){
+  DEBUG_PRINTLN("Partial update USER3 Telegram message");
   user3Updated = false; // clear the flag
-  const uint16_t msgBoxX = User3_X + 10;
-  const uint16_t msgBoxY = User3_Y - 15;
-  const uint16_t msgBoxW = 350;        // width of the message area
-  const uint16_t msgBoxH = 60;         // height of one line
+  const uint16_t msgBoxX = 0;
+  const uint16_t msgBoxY = User3_Y + 1; //1 to give a bit of padding
+  const uint16_t msgBoxW = display.width(); // width of the message area
+  const uint16_t msgBoxH = (display.height()-22)/3-24; // height of one line
 
   display.setPartialWindow(msgBoxX, msgBoxY, msgBoxW, msgBoxH);
   display.firstPage();
@@ -272,7 +283,7 @@ void partialUpdateTelegramMsgs()
 
 void goToSleep()
 {
-  DEBUG_PRINTLN("Counter at "+String(counter)+", going to sleep for 6s");
+  DEBUG_PRINTLN("Sleep counter at "+String(counter)+", going to sleep for 6s");
   counter++;
   delay(1000); //give some time to see the message before sleeping
   display.hibernate();  //put display to hibernate to save power
@@ -287,9 +298,9 @@ void loop()
 }
 
 /*TODO LIST:
--clean up partial update function
--battery monitor partial update
+-battery monitor partial update, custom graphics
 -user inputs handling
+-text wrapping for telegram messages
 */
 
 
