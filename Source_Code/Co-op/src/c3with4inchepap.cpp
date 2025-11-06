@@ -221,13 +221,14 @@ void fetchTelegramMessage()
 
 void partialUpdateTelegramMsgs()
 {
+  const uint16_t msgBoxX = 0;
+  const uint16_t msgBoxW = display.width(); // width of the message area
+  const uint16_t msgBoxH = (display.height()-22)/3-24;  // 24 good number:)
+
   if (user1Updated){
     DEBUG_PRINTLN("Partial update USER1 Telegram message"); 
     user1Updated = false; // clear the flag
-    const uint16_t msgBoxX = 0;
     const uint16_t msgBoxY = User1_Y+1; //1 to give a bit of padding
-    const uint16_t msgBoxW = display.width(); // width of the message area
-    const uint16_t msgBoxH = (display.height()-22)/3-24;  // 24 good number:)
 
     display.setPartialWindow(msgBoxX, msgBoxY, msgBoxW, msgBoxH);
     display.firstPage();
@@ -243,11 +244,8 @@ void partialUpdateTelegramMsgs()
   if (user2Updated){
   DEBUG_PRINTLN("Partial update USER2 Telegram message");
   user2Updated = false; // clear the flag
-  const uint16_t msgBoxX = 0;
   const uint16_t msgBoxY = User2_Y + 1; //1 to give a bit of padding
-  const uint16_t msgBoxW = display.width(); // width of the message area
-  const uint16_t msgBoxH = (display.height()-22)/3-24; // height of one line
-
+  
   display.setPartialWindow(msgBoxX, msgBoxY, msgBoxW, msgBoxH);
   display.firstPage();
   do {
@@ -262,10 +260,7 @@ void partialUpdateTelegramMsgs()
   if (user3Updated){
   DEBUG_PRINTLN("Partial update USER3 Telegram message");
   user3Updated = false; // clear the flag
-  const uint16_t msgBoxX = 0;
   const uint16_t msgBoxY = User3_Y + 1; //1 to give a bit of padding
-  const uint16_t msgBoxW = display.width(); // width of the message area
-  const uint16_t msgBoxH = (display.height()-22)/3-24; // height of one line
 
   display.setPartialWindow(msgBoxX, msgBoxY, msgBoxW, msgBoxH);
   display.firstPage();
