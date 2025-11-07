@@ -295,7 +295,8 @@ void loop()
 /*TODO LIST:
 -battery monitor partial update, custom graphics
 -user inputs handling
--text wrapping for telegram messages
+-text wrapping for telegram messages, truncation for too long messages
+-cuts G in Hellwig shift messages a few pixels lower for each user
 */
 
 
