@@ -244,14 +244,9 @@ void loop()
 
 /*
 TODO:
-timestamps
-task limit, deletion , selection
-*/
+select and delete finished task:
+through message command or button press
 
-/*
-WiFiClientSecure client_tcp;
-client_tcp.setInsecure(); // Add this line
-if (client_tcp.connect("api.telegram.org", 443)) {
-  Serial.println("Connected");
-}   
+deal with this later:
+The connection indicated an EOF
 */
