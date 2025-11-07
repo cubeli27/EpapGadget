@@ -18,6 +18,7 @@
 #include <private.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
+#include <time.h>
 
 void setFrame();
 void checkTelegram();
@@ -68,6 +69,8 @@ RTC_DATA_ATTR long lastUpdateId = 0;   //super necessary to keep track of last r
 void setup()
 {
   Serial.begin(115200);
+  setenv("TZ", "CET-1CEST,M3.5.0/02:00:00,M10.5.0/03:00:00", 1);
+  tzset();
   DEBUG_PRINTLN("Setup/ woke up");
   //eink pins
   pinMode(CS_PIN, OUTPUT);
@@ -142,6 +145,7 @@ void checkTelegram()
     HTTPClient http;
     String url = "https://api.telegram.org/bot" + String(TELEGRAM_BOT_TOKEN) + "/getUpdates?offset=" + String(lastUpdateId + 1) + "&limit=1";   
     http.begin(url);
+
     int httpCode = http.GET();
 
     if (httpCode == HTTP_CODE_OK) {
@@ -157,10 +161,35 @@ void checkTelegram()
         lastUpdateId = doc["result"][doc["result"].size() - 1]["update_id"];
 
         if (text && strlen(text) > 0) {
-            strncpy(NewTask, text, sizeof(NewTask));
-            NewTask[sizeof(NewTask)-1] = '\0';
-            userUpdated = true;
-            DEBUG_PRINTLN("User message: " + String(NewTask));
+          const size_t maxMsgLen = 20;   // Max length before truncation
+          char messagePart[32];          // For truncated message
+          char timeBuffer[20];           // For formatted timestamp
+          char combined[128];            // Timestamp + message
+
+          // --- Truncate message if too long ---
+          if (strlen(text) > maxMsgLen) {
+            strncpy(messagePart, text, maxMsgLen);
+            messagePart[maxMsgLen] = '\0';
+            strcat(messagePart, "..");
+          } else {
+            strncpy(messagePart, text, sizeof(messagePart) - 1);
+            messagePart[sizeof(messagePart) - 1] = '\0';
+          }
+
+          // --- Get Telegram timestamp (convert Unix -> local time) ---
+          time_t msgTime = message["date"]; // Telegram’s Unix timestamp
+          struct tm *timeinfo = localtime(&msgTime);
+          strftime(timeBuffer, sizeof(timeBuffer), "%d/%m @%H", timeinfo);
+
+          // --- Combine into one string ---
+          snprintf(combined, sizeof(combined), "%s [%s]", messagePart, timeBuffer);
+
+          // --- Store in NewTask safely ---
+          strncpy(NewTask, combined, sizeof(NewTask) - 1);
+          NewTask[sizeof(NewTask) - 1] = '\0';
+
+          userUpdated = true;
+          DEBUG_PRINTLN("User message: " + String(NewTask));
         }
       }
     }
@@ -213,5 +242,16 @@ void loop()
   //youll do nüthing
 }
 
+/*
+TODO:
+timestamps
+task limit, deletion , selection
+*/
 
-
+/*
+WiFiClientSecure client_tcp;
+client_tcp.setInsecure(); // Add this line
+if (client_tcp.connect("api.telegram.org", 443)) {
+  Serial.println("Connected");
+}   
+*/
