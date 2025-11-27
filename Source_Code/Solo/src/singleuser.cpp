@@ -141,7 +141,8 @@ void checkTelegram()
   }
 
   if (WiFi.status() == WL_CONNECTED) {
-    DEBUG_PRINTLN("Connected WiFi, checking Telegram, lastUpdateId: " + String(lastUpdateId));
+    DEBUG_PRINTLN("Connected WiFi: " + String(WIFI_SSID));
+    DEBUG_PRINTLN("Telegram, lastUpdateId: " + String(lastUpdateId));
     HTTPClient http;
     String url = "https://api.telegram.org/bot" + String(TELEGRAM_BOT_TOKEN) + "/getUpdates?offset=" + String(lastUpdateId + 1) + "&limit=1";   
     http.begin(url);
