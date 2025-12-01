@@ -18,6 +18,8 @@
 #include <private.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
+#include <cstring>
+
 
 void setFrame();
 void fetchTelegramMessage();
@@ -59,17 +61,13 @@ GxEPD2_BW<GxEPD2_420_GDEY042T81, GxEPD2_420_GDEY042T81::HEIGHT> display(GxEPD2_4
 // RTC_DATA_ATTR for retaining data during sleep
 RTC_DATA_ATTR bool FrameSet = 0; //flag to know if frame was set already
 RTC_DATA_ATTR int counter = 0; //just for testing increments on each wakeup
-RTC_DATA_ATTR char title[20] = "TITLE";
-RTC_DATA_ATTR char user1[30] = "USER1: ";
-RTC_DATA_ATTR char user2[30] = "USER2: ";
-RTC_DATA_ATTR char user3[30] = "USER3: ";
 RTC_DATA_ATTR uint16_t User1_X ;
 RTC_DATA_ATTR uint16_t User1_Y ;
 RTC_DATA_ATTR uint16_t User2_X ;
 RTC_DATA_ATTR uint16_t User2_Y ;
 RTC_DATA_ATTR uint16_t User3_X ;
 RTC_DATA_ATTR uint16_t User3_Y ;
-RTC_DATA_ATTR uint16_t pad = 6; //padding for text boxes
+RTC_DATA_ATTR uint16_t pad = 15; //padding for text boxes
 RTC_DATA_ATTR char telegramMessage1[110] = "No Msg"; //110 chars enough for 3 rows at font size 1   
 RTC_DATA_ATTR char telegramMessage2[110] = "No Msg";
 RTC_DATA_ATTR char telegramMessage3[110] = "No Msg";
@@ -223,13 +221,18 @@ void partialUpdateTelegramMsgs()
 {
   const uint16_t msgBoxX = 0;
   const uint16_t msgBoxW = display.width(); // width of the message area
-  const uint16_t msgBoxH = (display.height()-22)/3-24;  // 24 good number:)
+  const uint16_t msgBoxH = (display.height()-22)/3-40;  // 24 good number:)
 
   if (user1Updated){
+    //for testing
+    // user2Updated = true;
+    // user3Updated = true;
+    // strcpy(telegramMessage2, telegramMessage1);
+    // strcpy(telegramMessage3, telegramMessage1);
+    //end testing
     DEBUG_PRINTLN("Partial update USER1 Telegram message"); 
     user1Updated = false; // clear the flag
-    const uint16_t msgBoxY = User1_Y+1; //1 to give a bit of padding
-
+    const uint16_t msgBoxY = User1_Y+10; //10 to give enough padding to not cut the g in Hellwig
     display.setPartialWindow(msgBoxX, msgBoxY, msgBoxW, msgBoxH);
     display.firstPage();
     do {
@@ -244,7 +247,7 @@ void partialUpdateTelegramMsgs()
   if (user2Updated){
   DEBUG_PRINTLN("Partial update USER2 Telegram message");
   user2Updated = false; // clear the flag
-  const uint16_t msgBoxY = User2_Y + 1; //1 to give a bit of padding
+  const uint16_t msgBoxY = User2_Y + 10; //10 to give enough padding to not cut the g in Hellwig
   
   display.setPartialWindow(msgBoxX, msgBoxY, msgBoxW, msgBoxH);
   display.firstPage();
@@ -260,7 +263,7 @@ void partialUpdateTelegramMsgs()
   if (user3Updated){
   DEBUG_PRINTLN("Partial update USER3 Telegram message");
   user3Updated = false; // clear the flag
-  const uint16_t msgBoxY = User3_Y + 1; //1 to give a bit of padding
+  const uint16_t msgBoxY = User3_Y + 10; //10 to give enough padding to not cut the g in Hellwig
 
   display.setPartialWindow(msgBoxX, msgBoxY, msgBoxW, msgBoxH);
   display.firstPage();
@@ -296,7 +299,6 @@ void loop()
 -battery monitor partial update, custom graphics
 -user inputs handling
 -text wrapping for telegram messages, truncation for too long messages
--cuts G in Hellwig shift messages a few pixels lower for each user
 */
 
 
