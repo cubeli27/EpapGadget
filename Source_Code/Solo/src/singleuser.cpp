@@ -235,6 +235,7 @@ void goToSleep()
   display.hibernate();  //put display to hibernate to save power
   esp_sleep_enable_timer_wakeup(2*1000000); // x times 1million microseconds = x*1s = xs
   esp_deep_sleep_start();
+
 }
 
 

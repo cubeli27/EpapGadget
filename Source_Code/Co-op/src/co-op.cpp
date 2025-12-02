@@ -160,6 +160,7 @@ void fetchTelegramMessage()
 {
   if (WiFi.status() != WL_CONNECTED) { //connect to WiFi if not connected
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    DEBUG_PRINTLN("Connecting to : " + String(WIFI_SSID));
     int attempts = 0;
     while (WiFi.status() != WL_CONNECTED && attempts < 20) {
       delay(500);
