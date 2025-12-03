@@ -61,7 +61,7 @@ From the given measurement results it can be concluded that with the current con
 
 <p align="center"> 
   <img src="Images/charging.JPG" alt="PCBA" width="45%"/> 
-  <img src="Images/charging.JPG" alt="PCBA" width="45%"/> 
+  <img src="Images/charged.JPG" alt="PCBA" width="45%"/> 
 </p> 
 
 ---
