@@ -41,7 +41,7 @@ Images of project mounted on the door frame and in operation.
 ## Firmware
 
 Co-op: 
-Designed for up to 3 people where they can send elegram messages in a groupchat that appear on the Epaper display. Depending on the location of the device, messages can be directed to a specific person or group or the broader public view. 
+Designed for up to 3 people where they can send telegram messages in a groupchat that appear on the Epaper display. Depending on the location of the device, messages can be directed to a specific person or group or the broader public view. 
 Ex1. Suitable for mounting on office or workshop doors and leaving relevant information to anyone who comes by such as "I'll be back in 15min" or "Not here today".
 Ex2. Can be placed somewhere at home for example for motivation messages to you family members, loved ones, or friends such as "Have a productive day {insert name}" or "Could you please take out the trash I couldn't manage this morning".  
 
