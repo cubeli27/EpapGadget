@@ -2,7 +2,7 @@
 
 ## Overview
 
-**EpapGadget** is a self contained solution and development platform for Epaper displays. More specifically the PCB is based on the ESP32-C3, taylored for the WeAct-Epaper4.2" (https://github.com/WeActStudio/WeActStudio.EpaperModule), and battery powered suitable for wall/door/monitor mounting. In this repo continuous development is done on two firmware solutions; Co-op, Solo.
+**EpapGadget** is a self contained solution and development platform for Epaper displays. More specifically the PCB is based on the ESP32-C3, taylored for the display WeAct-Epaper4.2" (https://github.com/WeActStudio/WeActStudio.EpaperModule), and battery powered suitable for wall/door/monitor mounting. In this repo continuous development is done on two firmware solutions; Co-op, Solo.
 
 <!-- To-do: Add more photos to the list -->
 <p align="center"> 
@@ -13,8 +13,13 @@
 **Key Features:**
 - E-paper display
 - ESP32-C3-WROOM-02
+- WiFi
 - USB-C for charging, programming, power
 - System Load Sharing between Battery and USB-C 
+- Works a month or more on a single charge (depending on the sleep cycle)
+- Reads telegram messages
+- Screen updates every 6s/60s/custom
+
 
 ---
 
@@ -31,7 +36,7 @@
 
 ## Final Results
 
-Images of project mounted on the door frame and in operation.
+Images of project mounted on the door frame and in operation running CO-OP firmware.
 <p align="center"> 
   <img src="Images/backmounted.jpg" alt="PCBA" width="45%"/> 
   <img src="Images/frontmounted.jpg" alt="PCBA" width="45%"/> 
@@ -42,8 +47,10 @@ Images of project mounted on the door frame and in operation.
 
 Co-op: 
 Designed for up to 3 people where they can send telegram messages in a groupchat that appear on the Epaper display. Depending on the location of the device, messages can be directed to a specific person or group or the broader public view. 
-Ex1. Suitable for mounting on office or workshop doors and leaving relevant information to anyone who comes by such as "I'll be back in 15min" or "Not here today".
-Ex2. Can be placed somewhere at home for example for motivation messages to you family members, loved ones, or friends such as "Have a productive day {insert name}" or "Could you please take out the trash I couldn't manage this morning".  
+
+Example1: Suitable for mounting on office or workshop doors and leaving relevant information to anyone who comes by such as "I'll be back in 15min" or "Not here today".
+
+Example2: Can be placed somewhere at home for example for motivation messages to you family members, loved ones, or friends such as "Have a productive day {insert name}" or "Could you please take out the trash I couldn't manage this morning".  
 
 
 Solo:
@@ -66,7 +73,7 @@ From the given measurement results it can be concluded that with the current con
 
 ---
 ## Future Work
-- Revision 1 inteded to host the bare 4 inch epaper display instead of the module 
+- Revision 1 intended to host the bare 4 inch epaper display instead of the module 
 - consolidate BOM 
 - code optimisation + additional features still in progress(bat/wifi icon, user inputs, aesthetics) 
 
