@@ -13,7 +13,8 @@
 **Key Features:**
 - E-paper display
 - ESP32-C3-WROOM-02
-- System Load Sharing, Battery or USB-C, working while charging 
+- USB-C for charging, programming, power
+- System Load Sharing between Battery and USB-C 
 
 ---
 
@@ -21,7 +22,7 @@
 
 | Folder | Description | Contents |
 |--------|-------------|-------------|
-| **CAD_files** | Contains CAD files  | Enclosure files |
+| **CAD_files** | Contains CAD files  | Mounting parts, battery holder and clip |
 | **ECAD_files** | Contains PCB files | Rev0  |
 | **Images** | Report relevant snippets | Images |
 | **Source_Code** | Firmware developed for this project | Co-op, Solo |
@@ -29,7 +30,12 @@
 ---
 
 ## Final Results
-placeholder
+
+Images of project mounted on the door frame and in operation.
+<p align="center"> 
+  <img src="Images/backmounted.jpg" alt="PCBA" width="45%"/> 
+  <img src="Images/frontmounted.jpg" alt="PCBA" width="45%"/> 
+</p>  
 
 ---
 ## Firmware
@@ -39,24 +45,38 @@ Designed for up to 3 people where they can leave custom messages on the Epaper d
 Ex1. Suitable for mounting on office or workshop doors and leaving relevant information to anyone who comes by such as "I'll be back in 15min" or "Not here today".
 Ex2. Can be placed somewhere at home for example for motivation messages to you family members, loved ones, or friends such as "Have a productive day {insert name}" or "Could you please take out the trash I couldn't manage this morning".  
 
-Add photo
 
 Solo:
 Peronalised TODO list for busy/forgetfull people to unclogg the phone with endless todo lists and apps, once you randoly remeber you need to do something you can send a message to your bot and once you come back to your work station the **Task** that needs to be done will be displayed on your Epaper display preventing that you forget what you had in mind. 
 
-Add photo
 
 ---
 ## Power Consumption 
-placeholder
+With the current consumption of 2.5mA on average at the 60s deep sleep cycle this gives the project a theorethical ~1000 hours of working time on the standard 2500mAh 18650 cells. Thats just under 42 days, with a generous 25% safety margin the device should require a charge once a month. 
+
+<p align="center"> 
+  <img src="Images/charging.JPG" alt="PCBA" width="45%"/> 
+  <img src="Images/charging.JPG" alt="PCBA" width="45%"/> 
+</p> 
 
 ---
 ## Future Work
-placeholder
+- Revision 1 inteded to host the bare 4 inch epaper display instead of the module 
+- consolidate BOM 
+- code optimisation + additional features still in progress(bat/wifi icon, user inputs, aesthetics) 
+
 
 ---
 ## Sponsor Acknowledgment
-placeholder
+I extend my heartfelt gratitude to **PCBWay** for their generous support and contribution to this project.  
+Their commitment to fostering innovation and learning in PCB design has been instrumental in making this project possible.  
+I am very pleased with the **customer support** throughout the process and even more with the **quality of the delivered printed circuit boards.**
+
+<img src="https://github.com/cubeli27/LadyBug/assets/134604815/8978de7c-6bcc-40be-b4ff-5b680a61df90" alt="Sponsor Logo" width="20%">
+
+**Contact Information**  
+For inquiries or to learn more about PCBWay, please visit [www.pcbway.com](https://www.pcbway.com)  
+or contact them directly at 📧 **service@pcbway.com**
 
 ---
 ## Author
