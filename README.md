@@ -52,7 +52,12 @@ Peronalised TODO list for busy/forgetfull people to unclogg the phone with endle
 
 ---
 ## Power Consumption 
-With the current consumption of 2.5mA on average at the 60s deep sleep cycle this gives the project a theorethical ~1000 hours of working time on the standard 2500mAh 18650 cells. Thats just under 42 days, with a generous 25% safety margin the device should require a charge once a month. 
+All the current measurements were conducted with the Power profiler Kit || (https://www.nordicsemi.com/Products/Development-hardware/Power-Profiler-Kit-2), see bellow:
+<p align="center"> 
+  <img src="Images/powerconsumption60s.png" alt="PCBA" width="100%"/> 
+</p> 
+
+From the given measurement results it can be concluded that with the current consumption of 2.5mA on average at the 60s deep sleep cycle this gives the project a theorethical ~1000 hours of working time with the standard 2500mAh 18650 cells. Thats just under 42 days, with a generous 25% safety margin it can be said that the device requires a charge once a month. 
 
 <p align="center"> 
   <img src="Images/charging.JPG" alt="PCBA" width="45%"/> 
