@@ -2,7 +2,7 @@
 
 ## Overview
 
-**EpapGadget** is a self contained solution and development platform for Epaper displays. More specifically the PCB is based on the ESP32-C3, taylored for the display WeAct-Epaper4.2" (https://github.com/WeActStudio/WeActStudio.EpaperModule), and battery powered suitable for wall/door/monitor mounting. In this repo continuous development is done on two firmware solutions; Co-op, Solo.
+**EpapGadget** is a self contained solution and development platform for Epaper displays. More specifically the PCB is based on the ESP32-C3, taylored for the display [WeAct-Epaper4.2"](https://github.com/WeActStudio/WeActStudio.EpaperModule), and battery powered suitable for wall/door/monitor mounting. In this repo continuous development is done on two firmware solutions; Co-op, Solo.
 
 <!-- To-do: Add more photos to the list -->
 <p align="center"> 
@@ -17,7 +17,7 @@
 - USB-C for charging, programming, power
 - System Load Sharing between Battery and USB-C 
 - Works a month or more on a single charge (depending on the sleep cycle)
-- Reads telegram messages
+- Updated via Telegram Bot API
 - Screen updates every 6s/60s/custom
 
 
@@ -59,7 +59,7 @@ Peronalised TODO list for busy/forgetfull people to unclogg the phone with endle
 
 ---
 ## Power Consumption 
-All the current measurements were conducted with the Power profiler Kit || (https://www.nordicsemi.com/Products/Development-hardware/Power-Profiler-Kit-2), see bellow:
+All the current measurements were conducted with the [Power profiler Kit ||](https://www.nordicsemi.com/Products/Development-hardware/Power-Profiler-Kit-2), see bellow:
 <p align="center"> 
   <img src="Images/powerconsumption60s.png" alt="PCBA" width="100%"/> 
 </p> 
@@ -94,4 +94,4 @@ or contact them directly at 📧 **service@pcbway.com**
 ## Author
 
 Developed by **cubeli27**  
-For questions or collaboration, feel free to reach out through GitHub.
+For questions or collaboration, feel free to reach out. See my contact info in the [profile repo](https://github.com/cubeli27/cubeli27).
