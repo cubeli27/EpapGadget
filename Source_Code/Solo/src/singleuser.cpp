@@ -19,10 +19,17 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include <time.h>
+#include "driver/adc.h"
+#include "esp_adc_cal.h"
+
+esp_adc_cal_characteristics_t adc_chars;
+#define BATTERY_CALIB_MV -2   // manual calibration(compare with multimeter), compensate for voltage divider and ADC error
 
 void setFrame();
 void checkTelegram();
 void partialUpdateTasks();
+int readBatteryMillivolts();
+void outputBattery();
 void goToSleep();
 
 //DEBUGING STUFF-------------------------------------------
@@ -80,6 +87,18 @@ void setup()
   //buttons
   pinMode(INPUT1, INPUT);
   pinMode(INPUT2, INPUT);
+  
+  // Configure ADC1 channel 0 = GPIO0
+  adc1_config_width(ADC_WIDTH_BIT_12);
+  adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_11db);
+  // Characterize ADC with default Vref = 1100mV
+  esp_adc_cal_characterize(
+      ADC_UNIT_1,
+      ADC_ATTEN_11db,
+      ADC_WIDTH_BIT_12,
+      1100,
+      &adc_chars
+  );
 
   if (!FrameSet) {
     display.init(115200,true,50,false);
@@ -95,6 +114,8 @@ void setup()
   delay(1500);//giving it some extra time seems to help
   checkTelegram();
   partialUpdateTasks();
+  readBatteryMillivolts();
+  outputBattery();
   goToSleep();
 }
 
@@ -226,6 +247,43 @@ void partialUpdateTasks()
   }
 }
 
+int readBatteryMillivolts()
+{
+    const int samples = 6;
+    uint32_t raw_accum = 0;
+
+    for (int i = 0; i < samples; i++) {
+        raw_accum += adc1_get_raw(ADC1_CHANNEL_0);
+    }
+
+    uint32_t raw = raw_accum / samples;
+    uint32_t adc_pin_mV = esp_adc_cal_raw_to_voltage(raw, &adc_chars);
+    uint32_t battery_mV = adc_pin_mV * 2;   // calculate for voltage divider
+    battery_mV += BATTERY_CALIB_MV;         // manual offset
+
+    return battery_mV;
+}
+
+void outputBattery() {
+    int mv = readBatteryMillivolts();
+    DEBUG_PRINTLN("Battery mV: " + String(mv));
+    char batteryStr[20] = "Batt:";
+    snprintf(batteryStr, sizeof(batteryStr), "%s%dmV", batteryStr, mv);
+
+    const uint16_t battX = display.width() - 60 - 6 * strlen(batteryStr);
+    const uint16_t battY = 16;
+
+    display.setPartialWindow(battX, 0, 20*20, 20);
+    display.firstPage();
+    do {
+        display.fillRect(battX, 0, display.width() - battX, 16, GxEPD_WHITE);
+        display.setFont(&FreeMonoBold9pt7b);
+        display.setTextColor(GxEPD_BLACK);
+        display.setTextSize(1);
+        display.setCursor(battX, battY);
+        display.print(batteryStr);
+    } while (display.nextPage());
+}
 
 void goToSleep()
 {
