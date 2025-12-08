@@ -27,6 +27,7 @@
 
 | Folder | Description | Contents |
 |--------|-------------|-------------|
+| **ArduinoIDE_Epaper_Example** | Arduino IDE example code and instructions | .ino file |
 | **CAD_files** | Contains CAD files  | Mounting parts, battery holder and clip |
 | **ECAD_files** | Contains PCB files | Rev0  |
 | **Images** | Report relevant snippets | Images |
@@ -73,9 +74,11 @@ From the given measurement results it can be concluded that with the current con
 
 ---
 ## Future Work
-- Revision 1 intended to host the bare 4 inch epaper display instead of the module 
+- Revision 1 intended to host the bare 4 inch epaper display instead of the module
+- change LDO to boost converter to extend usable battery voltage range (currently testing cutoff)
 - consolidate BOM 
 - code optimisation + additional features still in progress(bat/wifi icon, user inputs, aesthetics) 
+- add arduino example/test code, instructions
 
 
 ---
