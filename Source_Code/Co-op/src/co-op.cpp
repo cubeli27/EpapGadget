@@ -19,15 +19,22 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include <cstring>
+#include <time.h>
+#include "driver/adc.h"
+#include "esp_adc_cal.h"
 
+esp_adc_cal_characteristics_t adc_chars;
+#define BATTERY_CALIB_MV -3   // manual calibration(compare with multimeter), compensate for voltage divider and ADC error
 
 void setFrame();
 void fetchTelegramMessage();
 void partialUpdateTelegramMsgs();
+int readBatteryMillivolts();
+void outputBattery();
 void goToSleep();
 
 //DEBUGING STUFF-------------------------------------------
-#define DEBUG 1 // 1= enable debug prints, 0=disable debug prints
+#define DEBUG 0 // 1= enable debug prints, 0=disable debug prints
 
 #if DEBUG == 1
   #define DEBUG_PRINTLN(x)    Serial.println(x)
@@ -77,6 +84,9 @@ void setup()
 {
   Serial.begin(115200);
   DEBUG_PRINTLN("Setup/ woke up");
+  //timezone
+  setenv("TZ", "CET-1CEST,M3.5.0/02:00:00,M10.5.0/03:00:00", 1);
+  tzset();
   //eink pins
   pinMode(CS_PIN, OUTPUT);
   pinMode(DC_PIN, OUTPUT);
@@ -85,6 +95,17 @@ void setup()
   //buttons
   pinMode(INPUT1, INPUT);
   pinMode(INPUT2, INPUT);
+  // Configure ADC1 channel 0 = GPIO0
+  adc1_config_width(ADC_WIDTH_BIT_12);
+  adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_11db);
+  // Characterize ADC with default Vref = 1100mV
+  esp_adc_cal_characterize(
+      ADC_UNIT_1,
+      ADC_ATTEN_11db,
+      ADC_WIDTH_BIT_12,
+      1100,
+      &adc_chars
+  );
 
   if (!FrameSet) {
     display.init(115200,true,50,false);
@@ -100,6 +121,8 @@ void setup()
   delay(1500);//giving it some extra time seems to help
   fetchTelegramMessage();
   partialUpdateTelegramMsgs();
+  readBatteryMillivolts();
+  outputBattery();
   goToSleep();
 }
 
@@ -152,9 +175,9 @@ void setFrame() //first display update after init
   DEBUG_PRINTLN("tbx3: "+String(tbx3)+", tby3: "+String(tby3)+", tbw3: "+String(tbw3)+", tbh3: "+String(tbh3));
 }
 
-bool user1Updated = false;
-bool user2Updated = false;
-bool user3Updated = false;
+bool user1Updated = true;
+bool user2Updated = true;
+bool user3Updated = true;
 
 void fetchTelegramMessage() 
 {
@@ -222,7 +245,7 @@ void partialUpdateTelegramMsgs()
 {
   const uint16_t msgBoxX = 0;
   const uint16_t msgBoxW = display.width(); // width of the message area
-  const uint16_t msgBoxH = (display.height()-22)/3-40;  // 24 good number:)
+  const uint16_t msgBoxH = (display.height()-22)/3-40;  // 40 good number:)
 
   if (user1Updated){
     //for testing
@@ -279,14 +302,52 @@ void partialUpdateTelegramMsgs()
   }
 }
 
+int readBatteryMillivolts()
+{
+    const int samples = 6;
+    uint32_t raw_accum = 0;
+
+    for (int i = 0; i < samples; i++) {
+        raw_accum += adc1_get_raw(ADC1_CHANNEL_0);
+    }
+
+    uint32_t raw = raw_accum / samples;
+    uint32_t adc_pin_mV = esp_adc_cal_raw_to_voltage(raw, &adc_chars);
+    uint32_t battery_mV = adc_pin_mV * 2;   // calculate for voltage divider
+    battery_mV += BATTERY_CALIB_MV;         // manual offset
+
+    return battery_mV;
+}
+
+void outputBattery() {
+    int mv = readBatteryMillivolts();
+    DEBUG_PRINTLN("Battery mV: " + String(mv));
+    char batteryStr[20] = "";
+    snprintf(batteryStr, sizeof(batteryStr), "%s%dmV", batteryStr, mv);
+
+    const uint16_t battX = display.width() - 30 - 6 * strlen(batteryStr);
+    const uint16_t battY = 12;
+
+    display.setPartialWindow(battX, 0, 20*20, 20);
+    display.firstPage();
+    do {
+        display.fillRect(battX, 0, display.width() - battX, 16, GxEPD_WHITE);
+        display.setFont(&FreeMonoBold9pt7b);
+        display.setTextColor(GxEPD_BLACK);
+        display.setTextSize(1);
+        display.setCursor(battX, battY);
+        display.print(batteryStr);
+    } while (display.nextPage());
+}
+
 
 void goToSleep()
 {
-  DEBUG_PRINTLN("Sleep counter at "+String(counter)+", going to sleep for 6s");
+  DEBUG_PRINTLN("Sleep counter at "+String(counter)+", going to sleep for 60s");
   counter++;
   delay(1000); //give some time to see the message before sleeping
   display.hibernate();  //put display to hibernate to save power
-  esp_sleep_enable_timer_wakeup(10*1000000); // x times 1million microseconds = x*1s = xs
+  esp_sleep_enable_timer_wakeup(60*1000000); // x times 1million microseconds = x*1s = xs
   esp_deep_sleep_start();
 }
 
@@ -297,7 +358,6 @@ void loop()
 }
 
 /*TODO LIST:
--battery monitor partial update, custom graphics
 -user inputs handling
 -text wrapping for telegram messages, truncation for too long messages
 */
